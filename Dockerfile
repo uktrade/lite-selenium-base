@@ -35,3 +35,17 @@ RUN ln -s /usr/bin/xvfb-chromium /usr/bin/google-chrome \
 RUN ln -s /usr/bin/geckodriver /usr/bin/chromium-browser \
     && chmod 777 /usr/bin/geckodriver \
     && chmod 777 /usr/bin/chromium-browser
+
+RUN pip install allure-pytest==2.6.1 \
+    allure-python-commons==2.6.1 \
+    pytest==4.4.0 \
+    pytest_bdd==3.1.0 \
+    selenium==3.141.0 \
+    requests \
+    pytest-xdist==1.30.0 \
+    pytest-rerunfailures==8.0 \
+    faker==3.0.0 \
+    django-environ==0.4.5
+
+RUN easy_install -U setuptools
+RUN pip install pytest-dependency
