@@ -1,0 +1,18 @@
+#!/bin/bash
+
+# Kill old sessions
+kill -TERM $(pidof chrome)
+kill -TERM $(pidof Xvfb)
+
+# Start Xvfb
+XVFB_WHD=${XVFB_WHD:-1280x720x16}
+Xvfb :99 -ac -screen 0 $XVFB_WHD -nolisten tcp &
+xvfb=$!
+export DISPLAY=:99
+
+# Start chrome
+/opt/google/chrome/google-chrome-base --no-sandbox $@ &
+chrome=$!
+
+wait $chrome
+wait $xvfb

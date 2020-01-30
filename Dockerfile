@@ -2,8 +2,6 @@
 FROM python:3.7-stretch AS selenium_base
 
 RUN apt-get update && apt-get install -yq \
-    firefox-esr \
-    chromium=70.0.3538.110-1~deb9u1 \
     git-core \
     xvfb=2:1.19.2-1+deb9u5 \
     xsel=1.2.0-2+b1 \
@@ -14,29 +12,34 @@ RUN apt-get update && apt-get install -yq \
     libxml2-dev=2.9.4+dfsg1-2.2+deb9u2 \
     libxslt-dev \
     libz-dev \
+    python-pytest-xdist \
     xclip=0.12+svn84-4+b1
 
-# GeckoDriver v0.19.1
-RUN wget -q "https://github.com/mozilla/geckodriver/releases/download/v0.19.1/geckodriver-v0.19.1-linux64.tar.gz" -O /tmp/geckodriver.tgz \
-    && tar zxf /tmp/geckodriver.tgz -C /usr/bin/ \
-    && rm /tmp/geckodriver.tgz
+# Google Chrome
+ARG CHROME_VERSION="google-chrome-stable"
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google-chrome.list \
+    && apt-get update -qqy \
+    && apt-get -qqy install \
+        ${CHROME_VERSION:-google-chrome-stable} \
+    && rm /etc/apt/sources.list.d/google-chrome.list \
+    && rm -rf /var/lib/apt/lists/* /var/cache/apt/*
 
-# chromeDriver v2.35
-RUN wget -q "https://chromedriver.storage.googleapis.com/2.35/chromedriver_linux64.zip" -O /tmp/chromedriver.zip \
-    && unzip -o /tmp/chromedriver.zip -d /usr/bin/ \
-    && rm /tmp/chromedriver.zip
+# ChromeDriver
+RUN CHROME_MAJOR_VERSION=$(google-chrome --version | sed -E "s/.* ([0-9]+)(\.[0-9]+){3}.*/\1/") \
+    && CHROME_DRIVER_VERSION=$(wget --no-verbose -O - "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_MAJOR_VERSION}") \
+    && echo "Using chromedriver version: "$CHROME_DRIVER_VERSION \
+    && wget --no-verbose -O /tmp/chromedriver_linux64.zip https://chromedriver.storage.googleapis.com/$CHROME_DRIVER_VERSION/chromedriver_linux64.zip \
+    && unzip -o /tmp/chromedriver_linux64.zip -d /usr/bin/ \
+    && rm /tmp/chromedriver_linux64.zip
 
-# xvfb - X server display
-COPY xvfb-chromium /usr/bin/xvfb-chromium
-RUN ln -s /usr/bin/xvfb-chromium /usr/bin/google-chrome \
-    && chmod 777 /usr/bin/xvfb-chromium
-
-# create symlinks to chromedriver and geckodriver (to the PATH)
-RUN ln -s /usr/bin/geckodriver /usr/bin/chromium-browser \
-    && chmod 777 /usr/bin/geckodriver \
-    && chmod 777 /usr/bin/chromium-browser
+# Copy google x display wrapper into place
+RUN mv /opt/google/chrome/google-chrome /opt/google/chrome/google-chrome-base
+COPY google-chrome /opt/google/chrome/google-chrome
+RUN chmod 777 /opt/google/chrome/google-chrome
 
 RUN pip install allure-pytest==2.6.1 \
+    allure-pytest==2.6.1 \
     allure-python-commons==2.6.1 \
     pytest==4.4.0 \
     pytest_bdd==3.1.0 \
@@ -45,7 +48,6 @@ RUN pip install allure-pytest==2.6.1 \
     pytest-xdist==1.30.0 \
     pytest-rerunfailures==8.0 \
     faker==3.0.0 \
-    django-environ==0.4.5
-
-RUN easy_install -U setuptools
-RUN pip install pytest-dependency
+    django-environ==0.4.5 \
+    setuptools \
+    pytest-dependency
