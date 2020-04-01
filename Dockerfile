@@ -55,4 +55,7 @@ RUN pip install allure-pytest==2.6.1 \
     faker==3.0.0 \
     django-environ==0.4.5 \
     setuptools \
-    pytest-dependency
+    pytest-dependency \
+    django==2.2.10 \
+    directory-sso-api-client==6.3.0 \
+    envparse==0.2.0
