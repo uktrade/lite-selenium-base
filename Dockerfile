@@ -52,10 +52,13 @@ RUN pip install allure-pytest==2.6.1 \
     requests \
     pytest-xdist==1.30.0 \
     pytest-rerunfailures==8.0 \
+    pytest-django===3.9.0 \
+    pytest-env==0.6 \
     faker==3.0.0 \
     django-environ==0.4.5 \
     setuptools \
     pytest-dependency \
     django==2.2.10 \
     directory-sso-api-client==6.3.0 \
-    envparse==0.2.0
+    envparse==0.2.0 \
+    webdriver-manager==3.2
